@@ -13,18 +13,30 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+const string SectionName = "ExchangeRateApi";
 
 // Configure ExchangeRate services
-builder.Services.AddSingleton<ExternalExchangeRateApiConfig>(sp =>
+builder.Services.AddSingleton<ExternalExchangeRateApiConfig>(_ =>
 {
-    var config = builder.Configuration.GetSection("ExchangeRateApi").Get<ExternalExchangeRateApiConfig>();
-    return config ?? new ExternalExchangeRateApiConfig
+    var section = builder.Configuration.GetSection(SectionName);
+    var config = section.Get<ExternalExchangeRateApiConfig>();
+    
+    if (config == null)
     {
-        BaseAddress = builder.Configuration["ExchangeRateApi:BaseAddress"] ?? "http://localhost",
-        TokenEndpoint = builder.Configuration["ExchangeRateApi:TokenEndpoint"] ?? "/connect/token",
-        ClientId = builder.Configuration["ExchangeRateApi:ClientId"] ?? "client",
-        ClientSecret = builder.Configuration["ExchangeRateApi:ClientSecret"] ?? "secret"
-    };
+        config = new ExternalExchangeRateApiConfig
+        {
+            BaseAddress = section["BaseAddress"] ?? "http://localhost",
+            TokenEndpoint = section["TokenEndpoint"] ?? "/connect/token",
+            ClientId = section["ClientId"] ?? "client",
+            ClientSecret = section["ClientSecret"] ?? "secret"
+        };
+
+        var logger = builder.Services.BuildServiceProvider()
+            .GetRequiredService<ILogger<Program>>();
+        logger.LogWarning("Using default ExternalExchangeRateApiConfig values – check configuration!");
+    }
+
+    return config;
 });
 
 // Register HttpClient for providers
@@ -59,7 +71,8 @@ app.UseExceptionHandler(errorApp =>
 app.MapGet("/api/rates", async(
     GetExchangeRateRequest request,
     IValidator<GetExchangeRateRequest> validator,
-    IExchangeRateRepository repository) =>
+    IExchangeRateRepository repository,
+    ILogger<Program> logger) =>
 {
     
     var validation = await validator.ValidateAsync(request);
@@ -82,9 +95,9 @@ app.MapGet("/api/rates", async(
     }
     catch (Exception e)
     {
+        logger.LogError(e, "Unhandled exception while processing request");
         return Results.Problem(
             title: "Error retrieving exchange rate",
-            detail: e.Message,
             statusCode: StatusCodes.Status500InternalServerError);
     }
     

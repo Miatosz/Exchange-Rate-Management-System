@@ -19,7 +19,7 @@ public class InMemoryExchangeRateDataStore : IExchangeRateDataStore
 
     public Task<List<ExchangeRate.Core.Entities.ExchangeRate>> GetExchangeRatesAsync(DateTime minDate, DateTime maxDate)
     {
-        if (minDate >= maxDate)
+        if (minDate > maxDate)
             throw new ArgumentException("minDate must be earlier than maxDate");
             
         var rates = _exchangeRates.Values
@@ -45,7 +45,11 @@ public class InMemoryExchangeRateDataStore : IExchangeRateDataStore
                 rate.Source.Value,
                 rate.Frequency.Value);
 
-            _exchangeRates.TryAdd(key, rate);
+            if (!_exchangeRates.TryAdd(key, rate))
+            {
+                throw new InvalidOperationException($"Exchange rate already exists for {key}");
+            }
+
         }
 
         return Task.CompletedTask;
