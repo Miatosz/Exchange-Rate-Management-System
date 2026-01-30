@@ -1,0 +1,29 @@
+using ExchangeRate.Api.Models;
+using FluentValidation;
+
+namespace ExchangeRate.Api.Validators;
+
+public class GetExchangeRateRequestValidator : AbstractValidator<GetExchangeRateRequest>
+{
+    public GetExchangeRateRequestValidator()
+    {
+        RuleFor(x => x.From)
+            .NotEmpty()
+            .Length(3)
+            .Matches("^[A-Z]{3}$");
+
+        RuleFor(x => x.To)
+            .NotEmpty()
+            .Length(3)
+            .Matches("^[A-Z]{3}$");
+
+        RuleFor(x => x.Date)
+            .LessThanOrEqualTo(DateTime.UtcNow.Date);
+
+        RuleFor(x => x.Source)
+            .IsInEnum();
+
+        RuleFor(x => x.Frequency)
+            .IsInEnum();
+    }
+}
