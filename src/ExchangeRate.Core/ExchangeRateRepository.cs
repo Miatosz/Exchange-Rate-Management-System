@@ -369,8 +369,11 @@ namespace ExchangeRate.Core
             {
                 if (decimal.Round(newRate, Entities.ExchangeRate.Precision) != decimal.Round(savedRate, Entities.ExchangeRate.Precision))
                 {
-                    _logger.LogError("Saved exchange rate differs from new value. Currency: {currency}. Saved rate: {savedRate}. New rate: {newRate}. Source: {source}. Frequency: {frequency}", currency, savedRate, newRate, source, frequency);
-                    throw new ExchangeRateException($"_fxRatesByCurrency already contains rate for {currency}-{date:yyyy-MMdd}. Source: {source}. Frequency: {frequency}");
+                    _logger.LogWarning("Updating exchange rate. Currency: {currency}, Date: {date:yyyy-MM-dd}, Old rate: {savedRate}, New rate: {newRate}, Source: {source}, Frequency: {frequency}", 
+                        currency, date, savedRate, newRate, source, frequency);
+            
+                    datesByCurrency[date] = newRate;
+                    return true;
                 }
 
                 return false;
@@ -491,16 +494,5 @@ namespace ExchangeRate.Core
             return ratesByCurrency;
         }
     }
-
-    class NotSupportedCurrencyError : Error
-    {
-        public NotSupportedCurrencyError(CurrencyTypes currency)
-            : base("Not supported currency: " + currency) { }
-    }
-
-    class NoFxRateFoundError : Error
-    {
-        public NoFxRateFoundError()
-            : base("No fx rate found") { }
-    }
+    
 }

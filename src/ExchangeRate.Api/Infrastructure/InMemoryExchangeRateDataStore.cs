@@ -45,10 +45,7 @@ public class InMemoryExchangeRateDataStore : IExchangeRateDataStore
                 rate.Source.Value,
                 rate.Frequency.Value);
 
-            if (!_exchangeRates.TryAdd(key, rate))
-            {
-                throw new InvalidOperationException($"Exchange rate already exists for {key}");
-            }
+            _exchangeRates[key] = rate;
 
         }
 
