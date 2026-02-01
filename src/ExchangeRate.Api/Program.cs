@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 const string SectionName = "ExchangeRateApi";
 
 // Configure ExchangeRate services
-builder.Services.AddSingleton<ExternalExchangeRateApiConfig>(_ =>
+builder.Services.AddSingleton<ExternalExchangeRateApiConfig>(sp =>
 {
     var section = builder.Configuration.GetSection(SectionName);
     var config = section.Get<ExternalExchangeRateApiConfig>();
@@ -31,9 +31,8 @@ builder.Services.AddSingleton<ExternalExchangeRateApiConfig>(_ =>
             ClientSecret = section["ClientSecret"] ?? "secret"
         };
 
-        var logger = builder.Services.BuildServiceProvider()
-            .GetRequiredService<ILogger<Program>>();
-        logger.LogWarning("Using default ExternalExchangeRateApiConfig values – check configuration!");
+        var logger = sp.GetService<ILogger<Program>>();
+        logger?.LogWarning("Using default ExternalExchangeRateApiConfig values – check configuration!");
     }
 
     return config;
@@ -69,7 +68,7 @@ app.UseExceptionHandler(errorApp =>
 
 // GET /api/rates?from={currency}&to={currency}&date={date}&source={source}&frequency={frequency}
 app.MapGet("/api/rates", async(
-    GetExchangeRateRequest request,
+    [AsParameters] GetExchangeRateRequest request,
     IValidator<GetExchangeRateRequest> validator,
     IExchangeRateRepository repository,
     ILogger<Program> logger) =>
@@ -83,7 +82,7 @@ app.MapGet("/api/rates", async(
 
     try
     {
-        var rate = repository.GetRate(request.From, request.To, request.Date, request.Source, request.Frequency);
+        var rate = await repository.GetRateAsync(request.From, request.To, request.Date, request.Source, request.Frequency);
         
         return rate is null ? Results.NotFound() : Results.Ok(new ExchangeRateResponse(
             request.From, 
