@@ -16,9 +16,10 @@ public class GetExchangeRateRequestValidator : AbstractValidator<GetExchangeRate
             .NotEmpty()
             .Length(3)
             .Matches("^[A-Z]{3}$");
-
-        RuleFor(x => x.Date)
-            .LessThanOrEqualTo(_ => DateTime.UtcNow.Date);
+        
+        // Note: Future dates are allowed, system falls back to latest available rate
+        //RuleFor(x => x.Date)
+        //    .LessThanOrEqualTo(_ => DateTime.UtcNow.Date);
 
         RuleFor(x => x.Source)
             .IsInEnum();

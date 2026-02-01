@@ -19,6 +19,10 @@ namespace ExchangeRate.Core
     /// </summary>
     class ExchangeRateRepository : IExchangeRateRepository
     {
+        // TODO: SRP Violation,this class handles caching, data access and calculations
+        // Consider splitting into ExchangeRateCache, ExchangeRateCalculator, and orchestrating Repository
+        // Cache-related fields should be in separate cache class
+        
         private static readonly IEnumerable<ExchangeRateSources> SupportedSources = System.Enum.GetValues(typeof(ExchangeRateSources)).Cast<ExchangeRateSources>().ToList();
 
         /// <summary>

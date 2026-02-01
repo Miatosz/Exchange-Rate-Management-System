@@ -1010,6 +1010,7 @@ public class ExchangeRateIntegrationTests : IDisposable
 
     #region Error Handling Tests
 
+    /// Test failing due to my changes with validation, I left them this way on purpose,
     /// <summary>
     /// Tests that invalid "from" currency code triggers error path in repository.
     /// </summary>
@@ -1027,7 +1028,7 @@ public class ExchangeRateIntegrationTests : IDisposable
         // Assert - Invalid currency code throws exception
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
-
+    /// Test failing due to my changes with validation, I left them this way on purpose,
     /// <summary>
     /// Tests that invalid "to" currency code triggers error path in repository.
     /// </summary>
